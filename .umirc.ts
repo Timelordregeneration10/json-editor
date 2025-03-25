@@ -22,5 +22,7 @@ export default defineConfig({
     },
   ],
   npmClient: 'npm',
+  history: { type: "hash" },
+  publicPath: '/json-editor/'
 });
 
