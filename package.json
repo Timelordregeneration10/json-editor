@@ -1,12 +1,15 @@
 {
   "private": true,
+  "homepage": "https://timelordregeneration10.github.io/json-editor",
   "author": "Timelordregeneration10 <3497049745@qq.com>",
   "scripts": {
-    "dev": "max dev",
     "build": "max build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
+    "dev": "max dev",
     "format": "prettier --cache --write .",
-    "prepare": "husky",
     "postinstall": "max setup",
+    "prepare": "husky",
     "setup": "max setup",
     "start": "npm run dev"
   },
@@ -23,6 +26,7 @@
     "@types/lodash": "^4.17.16",
     "@types/react": "^18.0.33",
     "@types/react-dom": "^18.0.11",
+    "gh-pages": "^6.3.0",
     "husky": "^9",
     "lint-staged": "^13.2.0",
     "prettier": "^2.8.7",
