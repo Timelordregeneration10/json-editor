@@ -15,6 +15,7 @@ import CustomEmpty from '@/components/CustomEmpty';
 import { debounce } from 'lodash';
 import useWindow from '@/utils/useWindow';
 import rmt from './assets/rmt.gif';
+import { Helmet } from '@umijs/max';
 
 const JsonEditor = () => {
   const defaultJson: any = useMemo(
@@ -506,6 +507,11 @@ const JsonEditor = () => {
 
   return (
     <PageContainer pageHeaderRender={false}>
+      <Helmet>
+        <link rel="icon" href="https://timelordregeneration10.github.io/json-editor/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="https://timelordregeneration10.github.io/json-editor/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="https://timelordregeneration10.github.io/json-editor/favicon.ico" />
+      </Helmet>
       <ProCard
         title={
           <div
