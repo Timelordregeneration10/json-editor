@@ -7,11 +7,11 @@ export default defineConfig({
   initialState: {},
   request: {},
   layout: {
-    title: '@umijs/max',
+    title: 'RMT',
   },
   routes: [
     {
-      name: 'json editor',
+      name: 'kilala json editor',
       path: '/',
       component: './Main',
       hideInMenu: true,

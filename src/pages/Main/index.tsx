@@ -13,46 +13,42 @@ import {
 } from '@ant-design/icons';
 import CustomEmpty from '@/components/CustomEmpty';
 import { debounce } from 'lodash';
+import useWindow from '@/utils/useWindow';
+import rmt from './assets/rmt.gif';
 
 const JsonEditor = () => {
   const defaultJson: any = useMemo(
     () => ({
       property1: '',
       property2: 0,
-      property3: {
+      property3: [],
+      property4: {
         sub1: '',
         sub2: 0,
       },
-      property4: [],
       property5: [
         {
           sub3: '',
-          sub4: '',
-          sub5: '',
+          sub4: 0,
+          sub5: [''],
         },
         {
           sub3: '',
-          sub4: '',
-          sub5: '',
-          sub6: '',
+          sub4: 0,
+          sub5: {},
+          sub6: [0],
         },
       ],
     }),
     [],
   );
   const [data, setData] = useState<string>(JSON.stringify(defaultJson, null, 2));
-  const [uploading, setUploading] = useState<boolean>(false);
-  const [isCodeEditing, setIsCodeEditing] = useState<boolean>(false);
   const [editing, setEditing] = useState<boolean>(false);
   const [proportyName, setProportyName] = useState<string>('');
   const [addType, setAddType] = useState<string[]>(['basic-string']);
 
   const setCode = debounce((code: string) => {
-    setIsCodeEditing(true);
-    setData(() => {
-      setIsCodeEditing(false);
-      return code;
-    });
+    setData(code);
   }, 100);
 
   const handleUploadJson = async () => {
@@ -75,8 +71,6 @@ const JsonEditor = () => {
         message.error('文件类型错误！请确保选择的文件为 JSON 格式。');
         return;
       }
-      setUploading(true);
-      setIsCodeEditing(true);
       // 读取文件内容
       const reader = new FileReader();
       reader.readAsText(file);
@@ -90,8 +84,6 @@ const JsonEditor = () => {
           const jsonData = JSON.parse(reader.result);
           if (typeof jsonData === 'object') {
             setData(JSON.stringify(jsonData, null, 2));
-            setUploading(false);
-            setIsCodeEditing(false);
           } else {
             message.error('JSON 格式错误！请检查文件内容。');
           }
@@ -111,37 +103,38 @@ const JsonEditor = () => {
       message.error('属性名不能为空');
       return;
     }
-    setUploading(true);
-    const tempData = JSON.parse(data);
-    let addThing: any;
-    switch (addType.join('-')) {
-      case 'basic-string':
-        addThing = '';
-        break;
-      case 'basic-number':
-        addThing = 0;
-        break;
-      case 'basic-array-string':
-        addThing = [];
-        break;
-      case 'basic-array-number':
-        addThing = [0];
-        break;
-      case 'object-array':
-        addThing = [{}];
-        break;
-      default:
-        addThing = '';
-        break;
-    }
-    addPosition.reduce((acc, cur) => acc[cur], tempData)[proportyName] = addThing;
-    setData(() => {
-      setTimeout(() => setUploading(false), 1);
+    setData((dat) => {
+      const tempData = JSON.parse(dat);
+      let addThing: any;
+      switch (addType.join('-')) {
+        case 'basic-string':
+          addThing = '';
+          break;
+        case 'basic-number':
+          addThing = 0;
+          break;
+        case 'object':
+          addThing = {};
+          break;
+        case 'basic-array-string':
+          addThing = [];
+          break;
+        case 'basic-array-number':
+          addThing = [0];
+          break;
+        case 'object-array':
+          addThing = [{}];
+          break;
+        default:
+          addThing = '';
+          break;
+      }
+      addPosition.reduce((acc, cur) => acc[cur], tempData)[proportyName] = addThing;
       return JSON.stringify(tempData, null, 2);
     });
     setAddType(['basic-string']);
     setProportyName('');
-  }, [addType, proportyName, data]);
+  }, [addType, proportyName]);
 
   const renderJSON = useCallback((json: any, currentPlace: string[]) => {
     // 遍历json
@@ -168,14 +161,12 @@ const JsonEditor = () => {
                           type="link"
                           icon={<PlusCircleOutlined />}
                           onClick={() => {
-                            setUploading(true);
                             setData((dat) => {
                               const tempData = JSON.parse(dat);
                               currentPlace.reduce((acc, cur) => acc[cur], tempData)[key] = [
                                 ...value,
                                 {},
                               ];
-                              setTimeout(() => setUploading(false), 1);
                               return JSON.stringify(tempData, null, 2);
                             });
                           }}
@@ -186,13 +177,9 @@ const JsonEditor = () => {
                         okText="是"
                         cancelText="否"
                         onConfirm={() => {
-                          setUploading(true);
                           setData((dat) => {
                             const tempData = JSON.parse(dat);
                             delete currentPlace.reduce((acc, cur) => acc[cur], tempData)[key];
-                            setTimeout(() => {
-                              setUploading(false);
-                            }, 1);
                             return JSON.stringify(tempData, null, 2);
                           });
                         }}
@@ -230,7 +217,6 @@ const JsonEditor = () => {
                   label={key}
                   fieldProps={{
                     onChange: (e: any) => {
-                      setUploading(true);
                       setData((dat) => {
                         const tempData = JSON.parse(dat);
                         let arrayType = 'string';
@@ -239,7 +225,6 @@ const JsonEditor = () => {
                         }
                         currentPlace.reduce((acc, cur) => acc[cur], tempData)[key] =
                           arrayType === 'number' ? e.map((item: string) => Number(item)) : e;
-                        setTimeout(() => setUploading(false), 1);
                         return JSON.stringify(tempData, null, 2);
                       });
                     },
@@ -252,13 +237,9 @@ const JsonEditor = () => {
                   okText="是"
                   cancelText="否"
                   onConfirm={() => {
-                    setUploading(true);
                     setData((dat) => {
                       const tempData = JSON.parse(dat);
                       delete currentPlace.reduce((acc, cur) => acc[cur], tempData)[key];
-                      setTimeout(() => {
-                        setUploading(false);
-                      }, 1);
                       return JSON.stringify(tempData, null, 2);
                     });
                   }}
@@ -301,13 +282,9 @@ const JsonEditor = () => {
               okText="是"
               cancelText="否"
               onConfirm={() => {
-                setUploading(true);
-                const tempData = JSON.parse(data);
-                delete currentPlace.reduce((acc, cur) => acc[cur], tempData)[key];
-                setData(() => {
-                  setTimeout(() => {
-                    setUploading(false);
-                  }, 1);
+                setData((dat) => {
+                  const tempData = JSON.parse(dat);
+                  delete currentPlace.reduce((acc, cur) => acc[cur], tempData)[key];
                   return JSON.stringify(tempData, null, 2);
                 });
               }}
@@ -360,6 +337,10 @@ const JsonEditor = () => {
                               value: 'basic-number',
                             },
                             {
+                              label: '对象类型',
+                              value: 'object',
+                            },
+                            {
                               label: '基本数组类型',
                               value: 'basic-array',
                               children: [
@@ -408,24 +389,18 @@ const JsonEditor = () => {
                   okText="是"
                   cancelText="否"
                   onConfirm={() => {
-                    setUploading(true);
-                    setIsCodeEditing(true);
-                    const tempData = JSON.parse(data);
-                    if (!Number.isNaN(Number(currentPlace.slice(-1)[0]))) {
-                      currentPlace
-                        .slice(0, -1)
-                        .reduce((acc, cur) => acc[cur], tempData)
-                        .splice(Number(currentPlace.slice(-1)[0]), 1);
-                    } else {
-                      delete currentPlace.slice(0, -1).reduce((acc, cur) => acc[cur], tempData)[
-                        currentPlace.slice(-1)[0]
-                      ];
-                    }
-                    setData(() => {
-                      setTimeout(() => {
-                        setUploading(false);
-                        setIsCodeEditing(false);
-                      }, 1);
+                    setData((dat) => {
+                      const tempData = JSON.parse(dat);
+                      if (!Number.isNaN(Number(currentPlace.slice(-1)[0]))) {
+                        currentPlace
+                          .slice(0, -1)
+                          .reduce((acc, cur) => acc[cur], tempData)
+                          .splice(Number(currentPlace.slice(-1)[0]), 1);
+                      } else {
+                        delete currentPlace.slice(0, -1).reduce((acc, cur) => acc[cur], tempData)[
+                          currentPlace.slice(-1)[0]
+                        ];
+                      }
                       return JSON.stringify(tempData, null, 2);
                     });
                   }}
@@ -461,7 +436,7 @@ const JsonEditor = () => {
       </ProCard>
     );
   },
-    [data, proportyName, addType, handleAdd],
+    [proportyName, addType, handleAdd],
   );
 
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -478,14 +453,8 @@ const JsonEditor = () => {
   useEffect(() => {
     const localJson = localStorage.getItem('kilala-json');
     if (localJson) {
-      setUploading(true);
-      setIsCodeEditing(true);
       const jsonData = JSON.parse(localJson);
       setData(() => {
-        setTimeout(() => {
-          setUploading(false);
-          setIsCodeEditing(false);
-        }, 1);
         return JSON.stringify(jsonData, null, 2);
       });
     }
@@ -501,15 +470,49 @@ const JsonEditor = () => {
   }, [data]);
 
   const codeElement = useMemo(() => {
-    if (uploading) return <div>编辑ing...</div>;
     return <CodeRichText code={data} setCode={setCode} editing={editing} />
-  }, [data, uploading, editing])
+  }, [data, editing]);
+
+  const { width } = useWindow();
+  const [loadingPoint, setLoadingPoint] = useState(".");
+  useEffect(() => {
+    let interv: any = setInterval(() => {
+      setLoadingPoint((p) => {
+        return ".".repeat(p.length % 3 + 1)
+      })
+    }, 300);
+    return () => {
+      clearInterval(interv);
+      interv = null;
+    }
+  }, []);
+  const [point, setPoint] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
+  useEffect(() => {
+    let ticking = false;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setPoint({ x: e.clientX, y: e.clientY });
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    }
+  }, [])
 
   return (
     <PageContainer pageHeaderRender={false}>
       <ProCard
         title={
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}
+            onMouseEnter={() => { setEditing(false) }}
+            onMouseMove={() => { setEditing(false) }}
+          >
             <div style={{ color: '#1890ff', fontWeight: 700, fontSize: '18px' }}>
               Kilala Json Editor
             </div>
@@ -534,15 +537,15 @@ const JsonEditor = () => {
           </div>
         }
         className="ant-pro-card-title-width100"
-        bodyStyle={{ height: 'calc(100vh - 120px)' }}
+        bodyStyle={{ height: 'calc(100vh - 120px)', flexDirection: width < 768 ? "column" : "row" }}
         bordered
         gutter={24}
       >
         <ProCard
           title={<div style={{ fontWeight: 'bold', color: '#1890ff' }}>Form - Edit</div>}
           bordered
-          colSpan={'50%'}
-          bodyStyle={{ height: '100%', overflow: 'auto' }}
+          colSpan={width < 768 ? '100%' : '50%'}
+          bodyStyle={{ height: '100%', overflow: 'auto', padding: "0px" }}
           headStyle={{ borderBottom: '1px solid #00000015', paddingBottom: '8px' }}
           className="ant-pro-card-border-height100"
           onClick={() => { setEditing(false) }}
@@ -556,8 +559,6 @@ const JsonEditor = () => {
               <br />
               {errorMsg}
             </div>
-          ) : isCodeEditing ? (
-            <div>正在编辑中...</div>
           ) : (
             <ResizeQueryFilter
               labelWidth="auto"
@@ -571,7 +572,7 @@ const JsonEditor = () => {
         <ProCard
           title={<div style={{ fontWeight: 'bold', color: '#1890ff' }}>Code - Edit</div>}
           bordered
-          colSpan={'50%'}
+          colSpan={width < 768 ? '100%' : '50%'}
           headStyle={{ borderBottom: '1px solid #00000015', paddingBottom: '8px' }}
           bodyStyle={{ height: '100%', overflow: 'auto' }}
           className="ant-pro-card-border-height100"
@@ -580,6 +581,10 @@ const JsonEditor = () => {
           {codeElement}
         </ProCard>
       </ProCard>
+      <div className='RemCursorDiv' style={{ transform: `translate(${point.x}px,${point.y}px)` }}>
+        <img src={rmt} className='RemCursor' />
+        <span className='RemCursorText'>{editing ? ": code editing" : ": form editing"}{loadingPoint}</span>
+      </div>
     </PageContainer>
   );
 };
